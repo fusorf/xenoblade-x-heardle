@@ -1,0 +1,17 @@
+{
+  "title": "XENOBLADE X HEARDLE",
+  "todaySong": "La chanson du jour est",
+  "guessedIn": "Vous l'avez trouvée en",
+  "try": "essai",
+  "tries": "essais",
+  "youLost": "Vous avez perdu, bonne chance pour la prochaine !",
+  "search": "Rechercher",
+  "skip": "Passer",
+  "submit": "Valider",
+  "giveUp": "Abandonner",
+  "copyResults": "Copier les résultats",
+  "copied": "Copié !",
+  "comeBackIn": "Revenez dans",
+  "forNextOne": "pour la prochaine !",
+  "skipped": "Passé"
+}
