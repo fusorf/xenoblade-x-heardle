@@ -51,9 +51,20 @@ function getDailySong() {
     // Calculate days since December 10, 2025 (Day 1)
     const daysSinceBase = Math.floor((utcDate - baseDate) / (1000 * 60 * 60 * 24)) + 1;
     
-    // Use a simple but consistent hash
+    // Use a proper hash function for better distribution
+    // Simple hash based on the FNV-1a algorithm
+    let hash = 2166136261; // FNV offset basis
     const seed = daysSinceBase;
-    const index = seed % SONGS.length;
+    
+    // Hash the seed
+    for (let i = 0; i < 4; i++) {
+        hash ^= (seed >> (i * 8)) & 0xFF;
+        hash = Math.imul(hash, 16777619); // FNV prime
+    }
+    
+    // Ensure positive and get index
+    hash = Math.abs(hash);
+    const index = hash % SONGS.length;
     
     return {
         ...SONGS[index],
