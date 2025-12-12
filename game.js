@@ -405,9 +405,10 @@ function handleSearchInput(e) {
         return;
     }
     
-    // Filter songs
+    // Filter songs - search in both title and localizedTitle
     const matches = SONGS.filter(song => 
-        song.title.toLowerCase().includes(query)
+        song.title.toLowerCase().includes(query) || 
+        song.localizedTitle.toLowerCase().includes(query)
     ).slice(0, 10);
     
     if (matches.length > 0) {
@@ -425,9 +426,10 @@ function handleSearchInput(e) {
         autocompleteList.classList.remove('active');
     }
     
-    // Check if exact match
+    // Check if exact match in either title or localizedTitle
     const exactMatch = SONGS.find(song => 
-        song.title.toLowerCase() === query
+        song.title.toLowerCase() === query || 
+        song.localizedTitle.toLowerCase() === query
     );
     
     if (exactMatch) {
