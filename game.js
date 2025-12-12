@@ -39,6 +39,14 @@ let animationFrame = null;
 let dailySong = null;
 let playerReady = false;
 
+// Check if it's Christmas (December 25th)
+function isChristmas() {
+    const today = new Date();
+    const month = today.getUTCMonth(); // 0-indexed, so 11 = December
+    const day = today.getUTCDate();
+    return month === 11 && day === 25;
+}
+
 // Get today's song using a deterministic daily seed
 function getDailySong() {
     const today = new Date();
@@ -137,6 +145,11 @@ async function initGame() {
     
     dailySong = getDailySong();
     
+    // Add snow effect if it's Christmas
+    if (isChristmas()) {
+        createSnowEffect();
+    }
+    
     // Load YouTube API
     await loadYouTubeAPI();
     
@@ -158,11 +171,46 @@ async function initGame() {
     }
 }
 
+// Create snow effect
+function createSnowEffect() {
+    const snowContainer = document.createElement('div');
+    snowContainer.className = 'snow-container';
+    document.body.appendChild(snowContainer);
+    
+    // Create 100 snowflakes for a dense effect
+    for (let i = 0; i < 100; i++) {
+        const snowflake = document.createElement('div');
+        snowflake.className = 'snowflake';
+        snowflake.textContent = '❄';
+        
+        // Random properties for each snowflake
+        const left = Math.random() * 100;
+        const animationDuration = 5 + Math.random() * 10; // 5-15 seconds
+        const animationDelay = Math.random() * 5; // 0-5 seconds delay
+        const fontSize = 10 + Math.random() * 20; // 10-30px
+        const opacity = 0.3 + Math.random() * 0.7; // 0.3-1.0
+        
+        snowflake.style.left = `${left}%`;
+        snowflake.style.animationDuration = `${animationDuration}s`;
+        snowflake.style.animationDelay = `${animationDelay}s`;
+        snowflake.style.fontSize = `${fontSize}px`;
+        snowflake.style.opacity = opacity;
+        
+        snowContainer.appendChild(snowflake);
+    }
+}
+
 // Render the game UI
 function renderGame() {
     const container = document.getElementById('gameContainer');
     
     let html = '<div class="guess-boxes">';
+    
+    // Add Christmas easter egg if it's December 25th
+    if (isChristmas()) {
+        html += '<img src="patate.png" class="christmas-easter-egg" alt="Christmas" />';
+    }
+    
     for (let i = 0; i < MAX_ATTEMPTS; i++) {
         let className = 'guess-box';
         let content = '';
