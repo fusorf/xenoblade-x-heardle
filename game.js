@@ -12,6 +12,12 @@ function detectLanguage() {
     return browserLang.toLowerCase().startsWith('fr') ? 'fr' : 'en';
 }
 
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 // Load localization
 async function loadLocale() {
     currentLanguage = detectLanguage();
@@ -461,7 +467,7 @@ function handleSearchInput(e) {
     
     if (matches.length > 0) {
         autocompleteList.innerHTML = matches.map(song => 
-            `<div class="autocomplete-item" data-title="${song.title}">${song.title}</div>`
+            `<div class="autocomplete-item" data-title="${song.title}">${escapeHtml(song.title)}</div>`
         ).join('');
         
         autocompleteList.classList.add('active');
