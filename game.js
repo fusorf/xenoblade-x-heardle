@@ -1,12 +1,9 @@
-// Game configuration
-const DURATIONS = [1, 3, 7, 14, 16]; // Duration for each attempt in seconds
+const DURATIONS = [1, 3, 7, 14, 16];
 const MAX_ATTEMPTS = 5;
 
-// Localization
 let locale = {};
 let currentLanguage = 'en';
 
-// Detect user language
 function detectLanguage() {
     const browserLang = navigator.language || navigator.userLanguage;
     return browserLang.toLowerCase().startsWith('fr') ? 'fr' : 'en';
@@ -18,7 +15,6 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Load localization
 async function loadLocale() {
     currentLanguage = detectLanguage();
     try {
@@ -30,11 +26,9 @@ async function loadLocale() {
         locale = await response.json();
     }
     
-    // Update page title
     document.getElementById('pageTitle').textContent = locale.title;
 }
 
-// Game state
 let currentAttempt = 0;
 let guesses = [];
 let gameOver = false;
@@ -45,48 +39,39 @@ let animationFrame = null;
 let dailySong = null;
 let playerReady = false;
 
-// Check if it's Christmas (December 25th)
-function isChristmas() {
+function checkSpecialDate() {
     const today = new Date();
-    const month = today.getUTCMonth(); // 0-indexed, so 11 = December
-    const day = today.getUTCDate();
-    return month === 11 && day === 25;
+    const m = today.getUTCMonth();
+    const d = today.getUTCDate();
+    return m === 11 && d === 25;
 }
 
-// Get today's song using a deterministic daily seed
 function getDailySong() {
     const today = new Date();
-    // Use UTC midnight for consistency across timezones
     const utcDate = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
-    
-    // Base date: December 10, 2025
-    const baseDate = Date.UTC(2025, 11, 10); // Month is 0-indexed, so 11 = December
-    
-    // Calculate days since December 10, 2025 (Day 1)
+    const baseDate = Date.UTC(2025, 11, 10);
     const daysSinceBase = Math.floor((utcDate - baseDate) / (1000 * 60 * 60 * 24)) + 1;
     
-    // Use a proper hash function for better distribution
-    // Simple hash based on the FNV-1a algorithm
-    let hash = 2166136261; // FNV offset basis
-    const seed = daysSinceBase;
+    const cycleNumber = Math.floor((daysSinceBase - 1) / 20);
+    const dayInCycle = (daysSinceBase - 1) % 20;
     
-    // Hash the seed
-    for (let i = 0; i < 4; i++) {
-        hash ^= (seed >> (i * 8)) & 0xFF;
-        hash = Math.imul(hash, 16777619); // FNV prime
+    const shuffledSongs = [...SONGS];
+    
+    let seed = cycleNumber + 12345;
+    for (let i = shuffledSongs.length - 1; i > 0; i--) {
+        seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+        const j = seed % (i + 1);
+        [shuffledSongs[i], shuffledSongs[j]] = [shuffledSongs[j], shuffledSongs[i]];
     }
     
-    // Ensure positive and get index
-    hash = Math.abs(hash);
-    const index = hash % SONGS.length;
+    const songIndex = dayInCycle % shuffledSongs.length;
     
     return {
-        ...SONGS[index],
+        ...shuffledSongs[songIndex],
         dayNumber: daysSinceBase
     };
 }
 
-// Cookie management
 function setCookie(name, value, days) {
     const date = new Date();
     date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
@@ -111,7 +96,6 @@ function getCookie(name) {
     return null;
 }
 
-// Load saved game state
 function loadGameState() {
     const savedState = getCookie('xenobladeXHeardleState');
     if (savedState && savedState.dayNumber === dailySong.dayNumber) {
@@ -120,12 +104,10 @@ function loadGameState() {
     return null;
 }
 
-// Save game state
 function saveGameState(state) {
     setCookie('xenobladeXHeardleState', state, 1);
 }
 
-// Load YouTube IFrame API
 function loadYouTubeAPI() {
     return new Promise((resolve) => {
         if (window.YT && window.YT.Player) {
@@ -144,25 +126,19 @@ function loadYouTubeAPI() {
     });
 }
 
-// Initialize the game
 async function initGame() {
-    // Load localization first
     await loadLocale();
     
     dailySong = getDailySong();
     
-    // Add snow effect if it's Christmas
-    if (isChristmas()) {
-        createSnowEffect();
+    if (checkSpecialDate()) {
+        addVisualEffect();
     }
     
-    // Load YouTube API
     await loadYouTubeAPI();
     
-    // Check if already played today
     const savedState = loadGameState();
     if (savedState) {
-        // Load saved state
         currentAttempt = savedState.currentAttempt;
         guesses = savedState.guesses;
         gameOver = savedState.gameOver;
@@ -177,44 +153,39 @@ async function initGame() {
     }
 }
 
-// Create snow effect
-function createSnowEffect() {
-    const snowContainer = document.createElement('div');
-    snowContainer.className = 'snow-container';
-    document.body.appendChild(snowContainer);
+function addVisualEffect() {
+    const container = document.createElement('div');
+    container.className = 'snow-container';
+    document.body.appendChild(container);
     
-    // Create 100 snowflakes for a dense effect
     for (let i = 0; i < 100; i++) {
-        const snowflake = document.createElement('div');
-        snowflake.className = 'snowflake';
-        snowflake.textContent = '❄';
+        const element = document.createElement('div');
+        element.className = 'snowflake';
+        element.textContent = '❄';
         
-        // Random properties for each snowflake
         const left = Math.random() * 100;
-        const animationDuration = 5 + Math.random() * 10; // 5-15 seconds
-        const animationDelay = Math.random() * 5; // 0-5 seconds delay
-        const fontSize = 10 + Math.random() * 20; // 10-30px
-        const opacity = 0.3 + Math.random() * 0.7; // 0.3-1.0
+        const duration = 5 + Math.random() * 10;
+        const delay = Math.random() * 5;
+        const size = 10 + Math.random() * 20;
+        const opacity = 0.3 + Math.random() * 0.7;
         
-        snowflake.style.left = `${left}%`;
-        snowflake.style.animationDuration = `${animationDuration}s`;
-        snowflake.style.animationDelay = `${animationDelay}s`;
-        snowflake.style.fontSize = `${fontSize}px`;
-        snowflake.style.opacity = opacity;
+        element.style.left = `${left}%`;
+        element.style.animationDuration = `${duration}s`;
+        element.style.animationDelay = `${delay}s`;
+        element.style.fontSize = `${size}px`;
+        element.style.opacity = opacity;
         
-        snowContainer.appendChild(snowflake);
+        container.appendChild(element);
     }
 }
 
-// Render the game UI
 function renderGame() {
     const container = document.getElementById('gameContainer');
     
     let html = '<div class="guess-boxes">';
     
-    // Add Christmas easter egg if it's December 25th
-    if (isChristmas()) {
-        html += '<img src="patate.png" class="christmas-easter-egg" alt="Christmas" />';
+    if (checkSpecialDate()) {
+        html += '<img src="patate.png" class="special-img" alt="Special" />';
     }
     
     for (let i = 0; i < MAX_ATTEMPTS; i++) {
@@ -238,7 +209,6 @@ function renderGame() {
     }
     html += '</div>';
     
-    // Audio player
     html += `
         <div class="audio-player">
             <div class="progress-bar">
@@ -253,7 +223,6 @@ function renderGame() {
         </div>
     `;
     
-    // Search input
     html += `
         <div class="search-container">
             <span class="search-icon">🔍</span>
@@ -262,9 +231,7 @@ function renderGame() {
         </div>
     `;
     
-    // Buttons
     if (currentAttempt >= MAX_ATTEMPTS - 1) {
-        // Last attempt - show Give Up instead of Skip
         html += `
         <div class="button-container">
             <button class="give-up-button" id="giveUpButton">${locale.giveUp}</button>
@@ -272,7 +239,6 @@ function renderGame() {
         </div>
         `;
     } else {
-        // Normal attempts - show Skip button
         html += `
         <div class="button-container">
             <button class="skip-button" id="skipButton">${locale.skip} +${DURATIONS[Math.min(currentAttempt + 1, MAX_ATTEMPTS - 1)] - DURATIONS[currentAttempt]}s</button>
@@ -286,7 +252,6 @@ function renderGame() {
     setupEventListeners();
 }
 
-// Setup event listeners
 function setupEventListeners() {
     const playButton = document.getElementById('playButton');
     const skipButton = document.getElementById('skipButton');
@@ -307,7 +272,6 @@ function setupEventListeners() {
     }
 }
 
-// Toggle play/pause
 function togglePlay() {
     if (isPlaying) {
         pauseAudio();
@@ -316,7 +280,6 @@ function togglePlay() {
     }
 }
 
-// Initialize YouTube player
 function initPlayer() {
     return new Promise((resolve) => {
         if (player) {
@@ -356,16 +319,13 @@ function initPlayer() {
     });
 }
 
-// Play audio
 async function playAudio() {
     if (!playerReady) {
         await initPlayer();
     }
     
-    // If already playing, stop first
     if (isPlaying) {
         pauseAudio();
-        // Small delay to ensure state is properly reset
         await new Promise(resolve => setTimeout(resolve, 100));
     }
     
@@ -375,16 +335,13 @@ async function playAudio() {
         playButton.classList.add('playing');
     }
     
-    // Seek to start and play
     player.seekTo(0, true);
     player.playVideo();
     
-    // Start progress animation
     currentTime = 0;
     updateProgress();
 }
 
-// Check playback time and stop when needed
 function checkPlaybackTime() {
     if (!isPlaying) return;
     
@@ -397,7 +354,6 @@ function checkPlaybackTime() {
     }
 }
 
-// Pause audio
 function pauseAudio() {
     if (!isPlaying) return;
     
@@ -420,7 +376,6 @@ function pauseAudio() {
     updateProgressBar();
 }
 
-// Update progress
 function updateProgress() {
     if (!isPlaying) return;
     
@@ -437,14 +392,12 @@ function updateProgress() {
     }
 }
 
-// Update progress bar
 function updateProgressBar() {
     const percentage = (currentTime / DURATIONS[currentAttempt]) * 100;
     document.getElementById('progressFill').style.width = percentage + '%';
     document.getElementById('currentTimeLabel').textContent = Math.floor(currentTime) + 's';
 }
 
-// Handle search input
 let selectedSong = null;
 
 function handleSearchInput(e) {
@@ -459,7 +412,6 @@ function handleSearchInput(e) {
         return;
     }
     
-    // Filter songs - search in both title and localizedTitle
     const matches = SONGS.filter(song => 
         song.title.toLowerCase().includes(query) || 
         song.localizedTitle.toLowerCase().includes(query)
@@ -472,7 +424,6 @@ function handleSearchInput(e) {
         
         autocompleteList.classList.add('active');
         
-        // Add click listeners
         autocompleteList.querySelectorAll('.autocomplete-item').forEach(item => {
             item.addEventListener('click', () => selectSong(item.dataset.title));
         });
@@ -480,7 +431,6 @@ function handleSearchInput(e) {
         autocompleteList.classList.remove('active');
     }
     
-    // Check if exact match in either title or localizedTitle
     const exactMatch = SONGS.find(song => 
         song.title.toLowerCase() === query || 
         song.localizedTitle.toLowerCase() === query
@@ -495,7 +445,6 @@ function handleSearchInput(e) {
     }
 }
 
-// Handle keyboard navigation in search
 function handleSearchKeydown(e) {
     const autocompleteList = document.getElementById('autocompleteList');
     const items = autocompleteList.querySelectorAll('.autocomplete-item');
@@ -505,7 +454,6 @@ function handleSearchKeydown(e) {
     }
 }
 
-// Select a song from autocomplete
 function selectSong(title) {
     document.getElementById('searchInput').value = title;
     document.getElementById('autocompleteList').classList.remove('active');
@@ -513,13 +461,11 @@ function selectSong(title) {
     document.getElementById('submitButton').disabled = false;
 }
 
-// Skip attempt
 function skipAttempt() {
     pauseAudio();
     guesses.push('skip');
     currentAttempt++;
     
-    // Destroy the player to reinitialize it with new duration
     if (player) {
         player.destroy();
         player = null;
@@ -539,7 +485,6 @@ function skipAttempt() {
     }
 }
 
-// Submit guess
 function submitGuess() {
     if (!selectedSong) return;
     
@@ -553,7 +498,6 @@ function submitGuess() {
     } else {
         currentAttempt++;
         
-        // Destroy the player to reinitialize it with new duration
         if (player) {
             player.destroy();
             player = null;
@@ -574,17 +518,14 @@ function submitGuess() {
     }
 }
 
-// Give up
 function giveUp() {
     pauseAudio();
-    // Fill remaining attempts with skips
     while (guesses.length < MAX_ATTEMPTS) {
         guesses.push('skip');
     }
     endGame(false);
 }
 
-// End game
 function endGame(won) {
     gameOver = true;
     
@@ -599,11 +540,9 @@ function endGame(won) {
     showResults(won);
 }
 
-// Show results
 function showResults(won) {
     const container = document.getElementById('gameContainer');
     
-    // Get YouTube video ID
     const videoId = dailySong.url.split('v=')[1];
     
     let html = '<div class="result-message">';
@@ -619,13 +558,10 @@ function showResults(won) {
     
     html += '</div>';
     
-    // YouTube embed
     html += `<iframe class="youtube-embed" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
     
-    // Copy button
     html += `<button class="copy-button" onclick="copyResults()">${locale.copyResults}</button>`;
     
-    // Countdown to next song
     html += '<div class="countdown" id="countdown"></div>';
     
     container.innerHTML = html;
@@ -634,14 +570,12 @@ function showResults(won) {
     setInterval(updateCountdown, 1000);
 }
 
-// Copy results to clipboard
 function copyResults() {
     const emoji = [];
     let foundCorrect = false;
     
     for (let i = 0; i < MAX_ATTEMPTS; i++) {
         if (foundCorrect) {
-            // After finding the correct answer, fill with black squares
             emoji.push('⬛');
         } else if (guesses[i]) {
             if (guesses[i] === 'skip') {
@@ -653,7 +587,6 @@ function copyResults() {
                 emoji.push('🟥');
             }
         } else {
-            // Empty slots (shouldn't happen but just in case)
             emoji.push('⬛');
         }
     }
@@ -671,7 +604,6 @@ ${emoji.join('')}`;
     });
 }
 
-// Update countdown
 function updateCountdown() {
     const now = new Date();
     const tomorrow = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 0, 0, 0));
@@ -687,5 +619,4 @@ function updateCountdown() {
     }
 }
 
-// Initialize game on load
 window.addEventListener('load', initGame);

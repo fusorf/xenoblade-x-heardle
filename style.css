@@ -236,7 +236,7 @@ h1::before {
     position: relative;
 }
 
-.christmas-easter-egg {
+.special-img {
     position: absolute;
     right: 0;
     top: 0;
@@ -244,10 +244,10 @@ h1::before {
     max-height: 250px;
     z-index: 999;
     pointer-events: none;
-    animation: christmasFloat 3s ease-in-out infinite;
+    animation: floatEffect 3s ease-in-out infinite;
 }
 
-@keyframes christmasFloat {
+@keyframes floatEffect {
     0%, 100% {
         transform: translateY(0px) rotate(0deg);
     }
@@ -873,7 +873,7 @@ button:active::before {
     animation: spin 1s linear infinite;
 }
 
-/* Christmas snow effect */
+/* Visual effect container */
 .snow-container {
     position: fixed;
     top: 0;
@@ -891,10 +891,10 @@ button:active::before {
     color: #fff;
     text-shadow: 0 0 5px #fff;
     pointer-events: none;
-    animation: snowfall linear infinite;
+    animation: fallEffect linear infinite;
 }
 
-@keyframes snowfall {
+@keyframes fallEffect {
     0% {
         transform: translateY(0) rotate(0deg);
     }
